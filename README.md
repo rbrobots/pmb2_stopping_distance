@@ -14,3 +14,5 @@ Current issues:
 
 * CMakeLists.txt does not understand when the 'scripts' folder is used.
 * Need to get odometry feedback from robot
+* Need to figure out how to get callback from twist msgs
+* Then integrate robot send zero velocity (and record distance) once desired velocity from mobile_base_controller/odom is reached
