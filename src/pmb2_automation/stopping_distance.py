@@ -8,24 +8,31 @@ import rospy
 import time
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
+from gazebo_msgs.msg import ModelState
 from nav_msgs.msg import Odometry
 
 class Automation():
     def __init__(self):
         print("Initialised")#insert publishers and subscribers below
+        self._pub_model_state = rospy.Publisher('/gazebo/set_model_state',ModelState,queue_size=10)
         self._pub_vel = rospy.Publisher('key_vel',Twist, queue_size=10) # change pub name to my own pub
+        self._pub_data = rospy.Publisher('data_pub',)
         self._sub_odom = rospy.Subscriber('/mobile_base_controller/odom',Odometry, self.odom_callback)
+
+        self.model_state = ModelState()#for setting model state at each iteration of test scenario
         self.twist = Twist()#target velocity
         self.robot_odometry = Odometry()#robot odometry values
         self.timer1 =0
         self.timer2 =0
         self.time_elapsed =0
         self.movement=True # change this its messy
-        self.stop_dist_actual = Pose()
+        self.stop_dist_actual = Pose()#stopping distance actual
         self.stop_dist_1 = Pose()#when signal is sent for 0 velocity
         self.stop_dist_2 = Pose()#when 0 velocity detected in wheels
-        self.sd1 = False
+        self.sd1 = False#flags for stop distance
         self.sd2 = False
+
+        #self.initModelState()#set initial pose of robot
 
     def odom_callback(self,robot):#store odom info in robot_odometry
         #print("..in odom_callback function..")
@@ -33,10 +40,30 @@ class Automation():
         self.robot_odometry.pose.pose.orientation.z=robot.pose.pose.orientation.z
         self.robot_odometry.twist.twist.linear.x = robot.twist.twist.linear.x
         self.robot_odometry.twist.twist.angular.z = robot.twist.twist.angular.z
-        #print()
 
-    def setPMB2Orientation():#set default orientation in corridoor
-        print("in setPMB2Orientation")
+    def setModelState(self,p_x,p_y,p_z,o_x,o_y,o_z,o_w):# add rest of arguments
+        self.model_state.model_name = "pmb2"
+        self.model_state.pose.position.x = p_x
+        self.model_state.pose.position.y = p_y
+        self.model_state.pose.position.z = p_z
+        self.model_state.pose.orientation.x= o_x
+        self.model_state.pose.orientation.y= o_y
+        self.model_state.pose.orientation.z= o_z#perp to wall in corridoor
+        self.model_state.pose.orientation.w =o_w
+        self.model_state.twist.linear.x=0.0
+        self.model_state.twist.linear.y=0.0
+        self.model_state.twist.linear.z=0.0
+        self.model_state.twist.angular.x=0.0
+        self.model_state.twist.angular.y=0.0
+        self.model_state.twist.angular.z=0.0
+        self.model_state.reference_frame = "world"
+
+    def initModelState(self):#set default pmb2 pose in corridoor
+        time.sleep(2)
+        self.setModelState(0.0,0.0,0.0,0.0,0.0,1.57,1.0)
+        self._pub_model_state.publish(self.model_state)
+        time.sleep(2)
+        print("model state initialised ",self.model_state.pose.orientation.z)
 
     def setVelocity(self, linear, angular):#make parameters dynamic later
         #print("In sendVelocity() function")
@@ -44,7 +71,8 @@ class Automation():
         self.twist.angular.z = angular
 
     def run(self):
-        self._hz = rospy.Rate(2) #MIGHT NEED TO CHANGE THIS
+        print("run")
+        #self._hz = rospy.Rate(1) #MIGHT NEED TO CHANGE THIS
 
     def calc_stop_dist(self,n):
         if(n==1):#initial zero velocity command sent
@@ -61,6 +89,11 @@ class Automation():
             self.stop_dist_actual.position.x = abs(self.stop_dist_2.position.x - self.stop_dist_1.position.x)
             self.stop_dist_actual.orientation.z = abs(self.stop_dist_2.orientation.z - self.stop_dist_1.orientation.z)
             print("stop_act_x=",self.stop_dist_actual.position.x," stop_act_z=",self.stop_dist_actual.orientation.z)
+
+    def testScript():
+        self.setVelocity(0.1,0.0) # 2d for loop iterate all speeds
+
+    def publishData():#get all data and publish
 
 
     def publish(self):
@@ -106,14 +139,17 @@ if __name__ == '__main__':
         rospy.init_node('pmb2_automation')
 
         aut = Automation()#instantiate class
+
+        rate = rospy.Rate(1)#publish at 1 Hz/s -- should I change the rate?
+        time.sleep(2)
+        aut.initModelState()
+        time.sleep(2)
+
         aut.run()
         aut.publish()
 
-        #rate = rospy.Rate(1)#publish at 1 Hz/s -- should I change the rate?
-
         #while not rospy.is_shutdown():
-        #    aut.setPMB2Orientation()
-        #    aut.sendVelocity()
+            #rate.sleep()
             
     except rospy.ROSInterruptException:
         pass
