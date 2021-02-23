@@ -17,13 +17,14 @@ Current issues:
 
 To Add:
 
-* Test Scenarios
-* *Reverse
-* *Turning
-* *Obstacles
-* *Floor
-* *Increase weight/add object to robot
+Test Scenarios
+* Reverse
+* Turning
+* Obstacles
+* Floor
+* Increase weight/add object to robot
 
-* Data Recorder
-* *Reduce noise
-* *Get global pose from model_states
+Data Recorder:
+
+* Reduce noise
+* Get global pose from model_states
