@@ -14,3 +14,16 @@ Current issues:
 
 * CMakeLists.txt does not understand when the 'scripts' folder is used.
 * Publishers require delay before execution. Need to find out an alternative method to get this working.
+
+To Add:
+
+* Test Scenarios
+* *Reverse
+* *Turning
+* *Obstacles
+* *Floor
+* *Increase weight/add object to robot
+
+* Data Recorder
+* *Reduce noise
+* *Get global pose from model_states
