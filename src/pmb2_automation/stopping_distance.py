@@ -10,6 +10,7 @@ import numpy as np
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
 from gazebo_msgs.msg import ModelState
+from gazebo_msgs.msg import ModelStates
 from nav_msgs.msg import Odometry
 from pmb2_automation.msg import Data
 
@@ -17,11 +18,13 @@ class Automation():
     def __init__(self):
         print("Initialised")#insert publishers and subscribers below
         self._pub_model_state = rospy.Publisher('/gazebo/set_model_state',ModelState,queue_size=10)
-        #self._pub_vel = rospy.Publisher('key_vel',Twist, queue_size=10) # change pub name to my own pub
         self._pub_vel = rospy.Publisher('/mobile_base_controller/cmd_vel',Twist, queue_size=10)
-
         self._pub_data = rospy.Publisher('stop_dist_data',Data,queue_size=10)
+
         self._sub_odom = rospy.Subscriber('/mobile_base_controller/odom',Odometry, self.odom_callback)
+        
+        #self._sub_model_states = rospy.Subscriber('/gazebo/model_states',ModelStates, self.model_states_callback)
+        #better to use service instead?
 
         self.model_state = ModelState()#for setting model state at each iteration of test scenario
         self.target_velocity = Twist()#target velocity
@@ -33,6 +36,8 @@ class Automation():
         self.stop_dist_actual = Pose()#stopping distance actual
         self.stop_dist_1 = Pose()#when signal is sent for 0 velocity
         self.stop_dist_2 = Pose()#when 0 velocity detected in wheels
+        self.t_vel_x =0.0
+        self.t_vel_z =0.0
         self.sd1 = False#flags for stop distance
         self.sd2 = False
 
@@ -62,6 +67,15 @@ class Automation():
         self.robot_odometry.pose.pose.orientation.z=robot.pose.pose.orientation.z
         self.robot_odometry.twist.twist.linear.x = robot.twist.twist.linear.x
         self.robot_odometry.twist.twist.angular.z = robot.twist.twist.angular.z
+
+
+    def get_model_state(self,s):#UPDATE TO SERVICE CALL. FUNCTION NOT USED
+        if(s=="p_x"):
+            return -1#self.model_state.pose.position.x
+        elif(s=="p_y"):
+            return -1#self.model_state.pose.position.y
+        elif(s=="o_z"):
+            return -1#self.model_state.pose.orientation.z
 
     def set_model_state(self,p_x,p_y,p_z,o_x,o_y,o_z,o_w):# add rest of arguments
         self.model_state.model_name = "pmb2"#this should be dynamic later
@@ -124,17 +138,6 @@ class Automation():
         elif(n==3):
             self.time_elapsed = self.timer2-self.timer1
 
-    def round_decimals_up(self, number, decimals):#from kodify.net
-        if not isinstance(decimals, int):
-            raise TypeError("decimal places must be an integer")
-        elif decimals < 0:
-            raise ValueError("decimal places has to be 0 or more")
-        elif decimals == 0:
-            return math.ceil(number)
-
-        factor = 10 ** decimals
-        return math.ceil(number * factor) / factor
-
     def execute_test_scripts(self):#this script will iterate through a number of test scenarios
         
         #MOVING FORWARD IN X AXIS
@@ -147,17 +150,6 @@ class Automation():
 
         #ANGULAR SPEED IN Z AXIS?
 
-
-        #self.set_target_velocity(0.1,0.0) # 2d for loop iterate all speeds
-        #all forward cases
-        ##linear
-        ##angular
-        ##both
-        #all reverse cases
-        ##linear
-        ##angular
-        ##both
-
     def execute_single_test_script(self, x, z):
         self.reset()
         #self.set_model_state(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
@@ -166,6 +158,8 @@ class Automation():
         #initialisations done
 
         self.set_target_velocity(x,z)
+        self.t_vel_x=x
+        self.t_vel_z=z
         self.pub_target_velocity()
 
         time.sleep(2)
@@ -199,13 +193,23 @@ class Automation():
 
 
     def pub_data(self):#this function publishes data for output
-        self.data.desired_velocity.linear.x = self.target_velocity.linear.x
-        self.data.initial_pose.position.x=0#TO ADD
-        self.data.initial_pose.position.z=0#TO ADD
-        self.data.final_pose.position.x=0#TO ADD
-        self.data.final_pose.position.z=0#TO ADD
+        #self.data.desired_velocity.linear.x = self.target_velocity.linear.x
+        self.data.desired_velocity_x = self.t_vel_x
+        self.data.initial_pose_x=0.0##initial pose is always 0
+        self.data.initial_pose_y=0.0
+        self.data.initial_twist_z=1.5708#make dynamic!
+
         self.data.stop_distance=self.stop_dist_actual.position.x#doesn't like this
         self.data.stop_time=self.time_elapsed
+
+
+        #THE FOLLOWING FUNCTIONS ARE NOT YET USED.
+        self.data.final_pose_x=0#self.get_model_state("p_x")
+        self.data.final_pose_y=0#self.get_model_state("p_y")
+        self.data.final_twist_z=0#self.get_model_state("o_z")
+
+        print("velocity.x=",self.t_vel_x)
+        print("stop_distance.x=",self.data.stop_distance)
         #self.data.dist_error=0#TO ADD
         #output laser data
         time.sleep(2)
