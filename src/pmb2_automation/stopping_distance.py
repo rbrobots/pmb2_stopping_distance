@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Year: 2021
 # Author: Ranvir Bhogal
-# Description: Stopping distance simulation with TIAgo robot
+# Description: Stopping distance simulation with mobile robot
 
 import math
 import rospy
@@ -10,13 +10,14 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Pose
 from gazebo_msgs.msg import ModelState
 from nav_msgs.msg import Odometry
+from pmb2_automation.msg import Data
 
 class Automation():
     def __init__(self):
         print("Initialised")#insert publishers and subscribers below
         self._pub_model_state = rospy.Publisher('/gazebo/set_model_state',ModelState,queue_size=10)
         self._pub_vel = rospy.Publisher('key_vel',Twist, queue_size=10) # change pub name to my own pub
-        self._pub_data = rospy.Publisher('data_pub',)
+        self._pub_data = rospy.Publisher('stop_dist_data',Data,queue_size=10)
         self._sub_odom = rospy.Subscriber('/mobile_base_controller/odom',Odometry, self.odom_callback)
 
         self.model_state = ModelState()#for setting model state at each iteration of test scenario
@@ -32,7 +33,25 @@ class Automation():
         self.sd1 = False#flags for stop distance
         self.sd2 = False
 
+        self.data = Data()
+
+        #self.data_recorder=DataRecorder()
+
         #self.initModelState()#set initial pose of robot
+
+    def reset(self):#CHECK THIS
+        self.model_state = ModelState()#for setting model state at each iteration of test scenario
+        self.twist = Twist()#target velocity
+        self.robot_odometry = Odometry()#robot odometry values
+        self.timer1 =0
+        self.timer2 =0
+        self.time_elapsed =0
+        self.movement=True # change this its messy
+        self.stop_dist_actual = Pose()#stopping distance actual
+        self.stop_dist_1 = Pose()#when signal is sent for 0 velocity
+        self.stop_dist_2 = Pose()#when 0 velocity detected in wheels
+        self.sd1 = False#flags for stop distance
+        self.sd2 = False
 
     def odom_callback(self,robot):#store odom info in robot_odometry
         #print("..in odom_callback function..")
@@ -90,16 +109,35 @@ class Automation():
             self.stop_dist_actual.orientation.z = abs(self.stop_dist_2.orientation.z - self.stop_dist_1.orientation.z)
             print("stop_act_x=",self.stop_dist_actual.position.x," stop_act_z=",self.stop_dist_actual.orientation.z)
 
-    def testScript():
+    def testScript():#this script will iterate through a number of test scenarios
         self.setVelocity(0.1,0.0) # 2d for loop iterate all speeds
+        #all forward cases
+        ##linear
+        ##angular
+        ##both
+        #all reverse cases
+        ##linear
+        ##angular
+        ##both
 
-    def publishData():#get all data and publish
-
+    def pub_data(self):#this function publishes data for output
+        self.data.desired_velocity.linear.x = self.twist.linear.x
+        self.data.initial_pose.position.x=0#TO ADD
+        self.data.initial_pose.position.z=0#TO ADD
+        self.data.final_pose.position.x=0#TO ADD
+        self.data.final_pose.position.z=0#TO ADD
+        self.data.stop_distance=self.stop_dist_actual.position.x#doesn't like this
+        self.data.stop_time=self.time_elapsed
+        #self.data.dist_error=0#TO ADD
+        #output laser data
+        time.sleep(2)
+        self._pub_data.publish(self.data)
+        time.sleep(2)
 
     def publish(self):
         self.setVelocity(0.7,0.0)
         while True:#while robot local velocity <= commanded velocity
-            if(round(self.robot_odometry.twist.twist.linear.x,2) >= self.twist.linear.x):
+            if(round(self.robot_odometry.twist.twist.linear.x,2) >= self.twist.linear.x):#we only check linear velocity
                 #print("WE HIT DESIRED VELOCITY")
                 self.setVelocity(0.0,0.0)#is this needed because the robot stopped receiving velocity commands?
                 
@@ -132,6 +170,7 @@ class Automation():
 
         else:
             print("..ROBOT STOPPED 2..")
+        self.pub_data()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,8 @@
+Header header
+string child_frame_id
+geometry_msgs/Twist desired_velocity
+geometry_msgs/Pose initial_pose
+geometry_msgs/Pose final_pose
+float64 stop_distance
+uint32 stop_time
+uint32 dist_error
