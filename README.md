@@ -25,11 +25,11 @@ These can be modified by editing the 'execute_test_scripts' function in stopping
 <strong>To add:</strong>
 
 Test Scenarios
-* Reverse
+* Negative linear and negative angular movement
 * Combined linear and angular movement
-* Obstacles
+* Obstacles - obstacles in the way of the robot
 * Floor - friction, slopes
-* Weight -  adjust weight weightof robot,add object ontop of robot
+* Weight -  adjust weight weightof robot, add object ontop of robot, change centre of mass of robot
 
 Data Recorder:
 
