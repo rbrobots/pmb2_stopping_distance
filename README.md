@@ -35,6 +35,9 @@ Please see sample simulations in the 'video' folder
 
 Please see the log folder for the respective CSV output from these test scripts.
 
+* log/short_simulation and video/stop_dist_log_24_02_2021_13_13_24_short_simulation.csv
+* log/whole_simulation and video/stop_dist_log_24_02_2021_12_59_31_whole_simulation.csv
+
 <strong>To execute:</strong>
 
 * Install PMB2 package from http://wiki.ros.org/Robots/PMB-2/Tutorials/Installation/PMB2Simulation
