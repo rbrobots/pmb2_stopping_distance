@@ -7,7 +7,7 @@ To execute:
 * catkin build in pmb2_public_ws
 * source ./devel/setup.bash
 * roslaunch pmb2_2dnav_gazebo pmb2_mapping.launch public_sim:=true world:=large_corridor
-* ./data_recorder.py
+* rosrun pmb2_automation data_recorder.py
 * rosrun pmb2_automation stopping_distance.py
 
 
