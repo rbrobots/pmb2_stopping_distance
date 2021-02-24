@@ -17,6 +17,17 @@ Each scenario has the following logic:
 * This data is written to a new line in csv file
 * The process repeats for each scenario
 
+CSV data conists of the following parameters:
+
+* timestamp
+* desired_velocity_x
+* desired_velocity_z
+* stop_distance_x
+* stop_distance_z
+* stop_time
+
+This includes the desired linear and angular velocities, the linear and angular stopping distances and the time taken to physically stop (since receiving zero velocity command).
+
 Please see sample simulations in the 'video' folder
 
 * short simulation consists of 4 test scenarios - 2 linear: 0.8 m/s and 0.9 m/s and 2 angular: 1.8 m/s and 1.9 m/s. 
