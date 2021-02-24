@@ -9,7 +9,7 @@ These can be modified by editing the 'execute_test_scripts' function in stopping
 
 <strong>To execute:</strong>
 
-* Install PMB2 package as shown in PDF:
+* Install PMB2 package from http://wiki.ros.org/Robots/PMB-2/Tutorials/Installation/PMB2Simulation
 * import pmb2_stopping_distance into pmb2_public_ws
 * catkin build in pmb2_public_ws
 * source ./devel/setup.bash
