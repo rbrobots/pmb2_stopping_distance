@@ -7,6 +7,16 @@ The current ranges tested for linear are 0.1 m/s to 1.0 m/s.
 The current ranges tested for angular are 1.0 m/s to 2.0 m/s.
 These can be modified by editing the 'execute_test_scripts' function in stopping_distance.py
 
+The data_recorder node subscribes to 'stop_dist_data' published from pmb2_automation node. 
+Data is collected formatted and written to a csv file stored in the 'log' folder
+
+Each scenario has the following logic:
+* While robot odometry has not reached desired velocity, continue sending desired velocity
+* Once desired velocity is reached and confirmed by the robot odometry, send zero velocity signal
+* The stopping distance is then calculated
+* This data is written to a new line in csv file
+* The process repeats for each scenario
+
 <strong>To execute:</strong>
 
 * Install PMB2 package from http://wiki.ros.org/Robots/PMB-2/Tutorials/Installation/PMB2Simulation
