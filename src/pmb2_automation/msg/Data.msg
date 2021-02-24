@@ -8,6 +8,7 @@ float64 initial_twist_z
 float64 final_pose_x
 float64 final_pose_y
 float64 final_twist_z
-float64 stop_distance
+float64 stop_distance_x
+float64 stop_distance_z
 float64 stop_time
 float64 dist_error

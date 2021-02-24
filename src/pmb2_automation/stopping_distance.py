@@ -13,6 +13,8 @@ from gazebo_msgs.msg import ModelState
 from gazebo_msgs.msg import ModelStates
 from nav_msgs.msg import Odometry
 from pmb2_automation.msg import Data
+from std_msgs.msg import String, Int8, Float32, Time, Int32 
+#from gazebo.srv import *
 
 class Automation():
     def __init__(self):
@@ -20,6 +22,7 @@ class Automation():
         self._pub_model_state = rospy.Publisher('/gazebo/set_model_state',ModelState,queue_size=10)
         self._pub_vel = rospy.Publisher('/mobile_base_controller/cmd_vel',Twist, queue_size=10)
         self._pub_data = rospy.Publisher('stop_dist_data',Data,queue_size=10)
+        #self._pub_script_status = rospy.Publisher('script_status',String,queue_size=10)
 
         self._sub_odom = rospy.Subscriber('/mobile_base_controller/odom',Odometry, self.odom_callback)
         
@@ -32,7 +35,7 @@ class Automation():
         self.timer1 =0
         self.timer2 =0
         self.time_elapsed =0
-        self.movement=True # change this its messy
+        self.movement=True 
         self.stop_dist_actual = Pose()#stopping distance actual
         self.stop_dist_1 = Pose()#when signal is sent for 0 velocity
         self.stop_dist_2 = Pose()#when 0 velocity detected in wheels
@@ -43,9 +46,7 @@ class Automation():
 
         self.data = Data()
 
-        #self.data_recorder=DataRecorder()
-
-        #self.pub_model_state()#set initial pose of robot
+        self.script_execution = False
 
     def reset(self):#CHECK THIS
         self.model_state = ModelState()#for setting model state at each iteration of test scenario
@@ -69,13 +70,20 @@ class Automation():
         self.robot_odometry.twist.twist.angular.z = robot.twist.twist.angular.z
 
 
-    def get_model_state(self,s):#UPDATE TO SERVICE CALL. FUNCTION NOT USED
-        if(s=="p_x"):
-            return -1#self.model_state.pose.position.x
-        elif(s=="p_y"):
-            return -1#self.model_state.pose.position.y
-        elif(s=="o_z"):
-            return -1#self.model_state.pose.orientation.z
+    #def get_model_state(self,model_name,entity_name):#UPDATE TO SERVICE CALL. FUNCTION NOT USED
+        #rospy.wait_for_service('/gazebo/get_model_state')
+        #try: 
+            #gms = rospy.ServiceProxy('/gazebo/get_model_state',GetModelState)
+            #res = gms(model_name,entity_name)
+            #return res
+        #except rospy.ServiceException, e:
+            #print("service call error")
+        #if(s=="p_x"):
+            #return -1#self.model_state.pose.position.x
+        #elif(s=="p_y"):
+            #return -1#self.model_state.pose.position.y
+        #elif(s=="o_z"):
+            #return -1#self.model_state.pose.orientation.z
 
     def set_model_state(self,p_x,p_y,p_z,o_x,o_y,o_z,o_w):# add rest of arguments
         self.model_state.model_name = "pmb2"#this should be dynamic later
@@ -139,21 +147,21 @@ class Automation():
             self.time_elapsed = self.timer2-self.timer1
 
     def execute_test_scripts(self):#this script will iterate through a number of test scenarios
-        
-        #MOVING FORWARD IN X AXIS
+        #LINEAR from 0.1 to 1.0
         for x in np.arange(0.10, 1.10, 0.10):#iterate all linear speeds (0.1-1.0) for x within speed restrictions.
-            print("..running test case cmd vel x=",x,"..")
-            aut.execute_single_test_script(x,0.0)
-            print("..test case cmd vel x=",x," completed..")
+            print("..running test case cmd vel x=",round(x,1))
+            self.execute_single_test_script(x,0.0,"linear")
+            print("..test case cmd vel x=",round(x,1))
 
-        #REVERSING IN X AXIS?
+        #ROTATION from 1.0 to 2.0
+        for z in np.arange(1.0, 2.10, 0.10):#Update parameters to be user-defined
+            print("..running test case cmd vel z=",round(z,1))
+            self.execute_single_test_script(0.0,z,"angular")
+            print("..test case cmd vel z=",round(z,1))
 
-        #ANGULAR SPEED IN Z AXIS?
-
-    def execute_single_test_script(self, x, z):
+    def execute_single_test_script(self, x, z, direction):
         self.reset()
-        #self.set_model_state(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
-        self.set_model_state(0.0,0.0,0.0,0.0,0.0,1.5708,1.0)#initial model state always the same
+        self.set_model_state(0.0,0.0,0.00000000,0.0,0.0,1.0,1.0)#initial model state always the same
         self.pub_model_state()
         #initialisations done
 
@@ -164,30 +172,49 @@ class Automation():
 
         time.sleep(2)
 
-        while True:
-            if(round(self.robot_odometry.twist.twist.linear.x,2) >= round(self.target_velocity.linear.x,1)):#if robot has reached target velocity
-                #print("(IN 1) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
-                self.set_target_velocity(0.0,0.0)
-                self.pub_target_velocity()
-                if(self.sd1==False):
-                    self.calc_stop_dist(1)#starting calculating stop distance
-                self.calc_elapsed_time(1)#start calculating time to real stop
-                self.movement=False
-            else:
-                self.pub_target_velocity()#if not at target velocity, send velocity command to robot for this test case
-                #print("(IN 2) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
-                print("current=",round(self.robot_odometry.twist.twist.linear.x,2),
-                    ", target=",round(self.target_velocity.linear.x,1))
+        if(direction=="linear"):
 
+            while True:
+                if(round(self.robot_odometry.twist.twist.linear.x,2) >= round(self.target_velocity.linear.x,1)):#if robot has reached target velocity
+                    #print("(IN 1) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
+                    self.set_target_velocity(0.0,0.0)
+                    self.pub_target_velocity()
+                    if(self.sd1==False):
+                        self.calc_stop_dist(1)#starting calculating stop distance
+                    self.calc_elapsed_time(1)#start calculating time to real stop
+                    self.movement=False
+                else:
+                    self.pub_target_velocity()#if not at target velocity, send velocity command to robot for this test case
 
-            if(self.robot_odometry.twist.twist.linear.x<=0 and self.movement==False):#if odometry shows robot has stopped
-                if(self.sd2==False):
-                    self.calc_stop_dist(2)#stop calculating stop distance
-                self.calc_elapsed_time(2)#stop caclulating stop distance time
-                self.calc_elapsed_time(3)#calculate time taken to stop robot after receiving zero velocity
-                self.calc_stop_dist(3)#calculate actual stop distance
-                #print("(IN 3) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
-                break
+                if(self.robot_odometry.twist.twist.linear.x<=0 and self.movement==False):#if odometry shows robot has stopped
+                    if(self.sd2==False):
+                        self.calc_stop_dist(2)#stop calculating stop distance
+                    self.calc_elapsed_time(2)#stop caclulating stop distance time
+                    self.calc_elapsed_time(3)#calculate time taken to stop robot after receiving zero velocity
+                    self.calc_stop_dist(3)#calculate actual stop distance
+                    #print("(IN 3) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
+                    break
+        if(direction=="angular"):
+            while True:
+                if(round(self.robot_odometry.twist.twist.angular.z,2) >= round(self.target_velocity.angular.z,1)):#if robot has reached target velocity
+                    #print("(IN 1) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
+                    self.set_target_velocity(0.0,0.0)
+                    self.pub_target_velocity()
+                    if(self.sd1==False):
+                        self.calc_stop_dist(1)#starting calculating stop distance
+                    self.calc_elapsed_time(1)#start calculating time to real stop
+                    self.movement=False
+                else:
+                    self.pub_target_velocity()#if not at target velocity, send velocity command to robot for this test case
+
+                if(self.robot_odometry.twist.twist.angular.z<=0 and self.movement==False):#if odometry shows robot has stopped
+                    if(self.sd2==False):
+                        self.calc_stop_dist(2)#stop calculating stop distance
+                    self.calc_elapsed_time(2)#stop caclulating stop distance time
+                    self.calc_elapsed_time(3)#calculate time taken to stop robot after receiving zero velocity
+                    self.calc_stop_dist(3)#calculate actual stop distance
+                    #print("(IN 3) 2 dp odom=",round(self.robot_odometry.twist.twist.linear.x,2))
+                    break
         self.pub_data()#publish collected data to topic for results analysis
 
 
@@ -195,21 +222,25 @@ class Automation():
     def pub_data(self):#this function publishes data for output
         #self.data.desired_velocity.linear.x = self.target_velocity.linear.x
         self.data.desired_velocity_x = self.t_vel_x
+        self.data.desired_velocity_z = self.t_vel_z
         self.data.initial_pose_x=0.0##initial pose is always 0
         self.data.initial_pose_y=0.0
-        self.data.initial_twist_z=1.5708#make dynamic!
+        self.data.initial_twist_z=1.0#make dynamic!
 
-        self.data.stop_distance=self.stop_dist_actual.position.x#doesn't like this
+        self.data.stop_distance_x=self.stop_dist_actual.position.x#doesn't like this
+        self.data.stop_distance_z=self.stop_dist_actual.orientation.z#doesn't like this
         self.data.stop_time=self.time_elapsed
 
 
-        #THE FOLLOWING FUNCTIONS ARE NOT YET USED.
+        #THE FOLLOWING ARE NOT YET USED.
         self.data.final_pose_x=0#self.get_model_state("p_x")
         self.data.final_pose_y=0#self.get_model_state("p_y")
         self.data.final_twist_z=0#self.get_model_state("o_z")
 
         print("velocity.x=",self.t_vel_x)
-        print("stop_distance.x=",self.data.stop_distance)
+        print("stop_distance.x=",self.data.stop_distance_x)
+        print("velocity.z=",self.t_vel_z)
+        print("stop_distance.z=",self.data.stop_distance_z)
         #self.data.dist_error=0#TO ADD
         #output laser data
         time.sleep(2)
@@ -265,19 +296,11 @@ if __name__ == '__main__':
         aut = Automation()#instantiate class
 
         rate = rospy.Rate(1)#publish at 1 Hz/s -- should I change the rate?
-        #time.sleep(2)
-        #aut.pub_model_state()
-        #time.sleep(2)
-
-        #aut.publish()
-
-        #aut.execute_test_scripts()
-        #aut.execute_single_test_script(0.9,0.0)
 
         aut.execute_test_scripts()
+        
+        rospy.loginfo("script execution complete")
 
-        #while not rospy.is_shutdown():
-            #rate.sleep()
             
     except rospy.ROSInterruptException:
         pass
