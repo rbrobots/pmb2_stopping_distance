@@ -1,6 +1,13 @@
 # pmb2_stopping_distance
 
-To execute:
+*Summary*
+
+This script tests the positive linear and angular stopping distance of a robot. 
+The current ranges tested for linear are 0.1 m/s to 1.0 m/s.
+The current ranges tested for angular are 1.0 m/s to 2.0 m/s.
+These can be modified by editing the 'execute_test_scripts' function in stopping_distance.py
+
+*To execute:*
 
 * Install PMB2 package as shown in PDF:
 * import pmb2_stopping_distance into pmb2_public_ws
