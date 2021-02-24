@@ -17,11 +17,6 @@ These can be modified by editing the 'execute_test_scripts' function in stopping
 * ./data_recorder.py
 * rosrun pmb2_automation stopping_distance.py
 
-<strong>Current issues:</strong>
-
-* CMakeLists.txt does not understand when the 'scripts' folder is used.
-* Publishers require delay before execution. Need to find out an alternative method to get this working.
-
 <strong>To add:</strong>
 
 Test Scenarios
@@ -36,3 +31,8 @@ Data Recorder:
 * Reduce noise
 * Get global coordinates from model_states
 * % error
+
+<strong>Current issues:</strong>
+
+* CMakeLists.txt does not understand when the 'scripts' folder is used.
+* Publishers require delay before execution. Need to find out an alternative method to get this working.
