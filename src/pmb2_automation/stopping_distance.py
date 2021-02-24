@@ -247,47 +247,6 @@ class Automation():
         self._pub_data.publish(self.data)
         time.sleep(2)
 
-    def publish(self):
-        #self.set_target_velocity(5,0.0)
-        while True:#while robot local velocity <= commanded velocity
-
-            if(round(self.robot_odometry.twist.twist.linear.x,2) >= self.target_velocity.linear.x):#we only check linear velocity
-                #print("WE HIT DESIRED VELOCITY")
-                self.set_target_velocity(0.0,0.0)#this doesn't do anything
-                
-                if(self.sd1==False):#calc initial stop dist
-                #get pose from robot
-                    self.calc_stop_dist(1)
-
-                self.timer1 = time.time()
-                #print("Elapsed Time:")
-                self.movement=False#this might slow down readings
-            else:
-                self._pub_vel.publish(self.target_velocity)
-
-
-            if(self.robot_odometry.twist.twist.linear.x<=0 and self.movement==False):
-                print("ROBOT HAS STOPPED 1")
-
-                #get pose from robot
-                if(self.sd2==False):
-                    self.calc_stop_dist(2)
-
-                self.timer2 = time.time()
-                self.time_elapsed = self.timer2-self.timer1
-                
-                self.calc_stop_dist(3)#print actual stop distance
-
-                print("Elapsed Time:")
-                print(self.time_elapsed)
-                print("Stop Distance x:")
-                print(self.stop_dist_actual.position.x)
-                break
-
-        else:
-            print("..ROBOT STOPPED 2..")
-        self.pub_data()
-
 
 if __name__ == '__main__':
     try:
