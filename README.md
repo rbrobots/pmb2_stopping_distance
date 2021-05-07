@@ -8,7 +8,7 @@ The current ranges tested for angular are 1.0 m/s to 2.0 m/s.
 These can be modified by editing the 'execute_test_scripts' function in stopping_distance.py
 
 The data_recorder node subscribes to 'stop_dist_data' published from pmb2_automation node. 
-Data is collected formatted and written to a csv file stored in the 'log' folder
+Data is collected formatted and written to a csv file stored in the 'log' folder.
 
 Each scenario has the following logic:
 * While robot odometry has not reached desired velocity, continue sending desired velocity
@@ -28,7 +28,7 @@ CSV data consists of the following parameters:
 
 This includes the desired linear and angular velocities, the linear and angular stopping distances and the time taken to physically stop (since receiving zero velocity command).
 
-Please see sample simulations in the 'video' folder
+Please see sample simulations in the 'video' folder:
 
 * short simulation consists of 4 test scenarios - 2 linear: 0.8 m/s and 0.9 m/s and 2 angular: 1.8 m/s and 1.9 m/s. 
 * whole simulation consists of 10 linear and 11 angular test scenarios. These include linear velocities from 0.1 to 1.0 m/s and angular velocities from 1.0 to 2.0.
