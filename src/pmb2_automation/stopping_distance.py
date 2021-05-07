@@ -108,7 +108,6 @@ class Automation():
         self.set_model_state(self.model_state.pose.position.x,self.model_state.pose.position.y,self.model_state.pose.position.z,
             self.model_state.pose.orientation.x,self.model_state.pose.orientation.y,self.model_state.pose.orientation.z,
             self.model_state.pose.orientation.w)
-        #self.set_model_state(0.0,0.0,0.0,0.0,0.0,1.57,1.0)
         self._pub_model_state.publish(self.model_state)
         time.sleep(2)
         #print("model state initialised with pmb2 orientation.z=",self.model_state.pose.orientation.z)
