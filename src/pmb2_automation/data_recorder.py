@@ -18,7 +18,6 @@ from std_msgs.msg import String, Int8, Float32, Time, Int32
 class DataRecorder():
 	def __init__(self):
 
-		#self._sub_status = rospy.Subscriber('script_status',String, self.status_callback)
 		self._sub_stop_dist = rospy.Subscriber('stop_dist_data',Data, self.stop_dist_callback)
 		self.data=Data()
 		self.rate= rospy.Rate(1)
