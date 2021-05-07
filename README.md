@@ -17,7 +17,7 @@ Each scenario has the following logic:
 * This data is written to a new line in csv file
 * The process repeats for each scenario
 
-CSV data conists of the following parameters:
+CSV data consists of the following parameters:
 
 * timestamp
 * desired_velocity_x
