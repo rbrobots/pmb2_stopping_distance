@@ -50,7 +50,7 @@ Please see the log folder for the respective CSV output from these test scripts.
 
 <strong>To add:</strong>
 
-Test Scenarios
+Test Scenarios:
 * Negative linear and negative angular movement
 * Combined linear and angular movement
 * Obstacles - obstacles in the way of the robot
